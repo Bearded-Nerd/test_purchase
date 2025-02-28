@@ -1,3 +1,6 @@
 node_modules/
 screenshots/
+temp_screenshots/
+__pycache__/
+*.pyc
 .env

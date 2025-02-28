@@ -1,7 +1,9 @@
 // Test Purchase Automation using Microsoft Omniparse
 // This script automates test purchases for performance marketing with simple UI
 
-const omniparse = require('@microsoft/omniparse');
+
+const omniparse = require('./omniparse');
+// const omniparse = require('@microsoft/omniparse');
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -277,7 +279,21 @@ async function clickContinueButton(page) {
 }
 
 async function clickMainCTA(page) {
-  // Common CTA selectors
+  console.log("Looking for main CTA button...");
+  
+  // Try using OmniParser to find and click the button
+  const clickedWithOmniParser = await page.findAndClick('button', 'Get Started') || 
+                               await page.findAndClick('button', 'Continue') ||
+                               await page.findAndClick('button', 'Add to Cart');
+  
+  if (clickedWithOmniParser) {
+    console.log("Clicked CTA button using OmniParser");
+    await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 5000 }).catch(() => {});
+    return true;
+  }
+  
+  // Fall back to traditional selectors if OmniParser didn't work
+  console.log("Falling back to traditional selectors...");
   const ctaSelectors = [
     'a.main-cta',
     'button.cta-button',

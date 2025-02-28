@@ -4,19 +4,23 @@
   "description": "Automated test purchase tool for e-commerce sites",
   "main": "automation.js",
   "scripts": {
-    "start": "node automation.js",
+    "start": "bash start.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@microsoft/omniparse": "latest",
-    "express": "latest",
-    "body-parser": "latest"
+    "express": "^4.17.1",
+    "body-parser": "^1.19.0",
+    "axios": "^0.24.0",
+    "puppeteer": "^13.0.0"
+  },
+  "engines": {
+    "node": "16.x"
   },
   "keywords": [
     "automation",
     "e-commerce",
     "testing"
   ],
-  "author": "",
+  "author": "Yoav Chen",
   "license": "MIT"
 }
