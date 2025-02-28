@@ -682,12 +682,12 @@ function setupUI() {
       <div class="form-section">
         <h3>Payment Information</h3>
         <div class="alert alert-info">
-          Use test card number: 4111111111111111
+          Use test card number: 0000000000000000
         </div>
         
         <div class="mb-3">
           <label for="cardNumber" class="form-label">Card Number</label>
-          <input type="text" class="form-control" id="cardNumber" name="cardNumber" value="4111111111111111">
+          <input type="text" class="form-control" id="cardNumber" name="cardNumber" value="0000000000000000">
         </div>
         
         <div class="row">
@@ -740,144 +740,143 @@ function setupUI() {
     </div>
   </div>
   
-  <script>
-    document.getElementById('testPurchaseForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      // Show loading state
-      document.querySelector('.loading').style.display = 'block';
-      document.getElementById('resultsContainer').style.display = 'none';
-      
-      // Gather form data
-      const formData = new FormData(this);
-      const customerInfo = {
-        firstName: formData.get('firstName'),
-        lastName: formData.get('lastName'),
-        email: formData.get('email'),
-        phone: formData.get('phone'),
-        address1: formData.get('address1'),
-        city: formData.get('city'),
-        state: formData.get('state'),
-        zipCode: formData.get('zipCode'),
-        country: formData.get('country')
-      };
-      
-      const paymentInfo = {
-        cardNumber: formData.get('cardNumber'),
-        cardName: formData.get('cardName'),
-        expiry: formData.get('expiry'),
-        cvc: formData.get('cvc')
-      };
-      
-      // Prepare request data
-      const requestData = {
-        landingPageUrl: formData.get('landingPageUrl'),
-        customerInfo,
-        paymentInfo,
-        submitOrder: formData.get('submitOrder') ? 'true' : 'false',
-        headless: formData.get('headless') ? 'true' : 'false'
-      };
-      
-      try {
-        // Send API request
-        const response = await fetch('/api/run-test', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(requestData)
-        });
-        
-        const result = await response.json();
-        
-        // Display results
-        const resultsContainer = document.getElementById('resultsContainer');
-        const resultStatus = document.getElementById('resultStatus');
-        const resultDetails = document.getElementById('resultDetails');
-        const screenshotContainer = document.getElementById('screenshotContainer');
-        
-        resultsContainer.style.display = 'block';
-        
-        if (result.success) {
-          resultStatus.className = 'alert alert-success';
-          resultStatus.textContent = 'Test purchase completed successfully!';
-          
-          // Show order result details
-          let detailsHtml = '<h4>Order Result:</h4>';
-          if (result.orderResult) {
-            detailsHtml += `<p><strong>Status:</strong> ${result.orderResult.status}</p>`;
-            if (result.orderResult.message) {
-              detailsHtml += `<p><strong>Message:</strong> ${result.orderResult.message}</p>`;
-            }
-            if (result.orderResult.currentUrl) {
-              detailsHtml += `<p><strong>Final URL:</strong> ${result.orderResult.currentUrl}</p>`;
-            }
-          }
-          resultDetails.innerHTML = detailsHtml;
-          
-          // Display screenshots
-          if (result.screenshotsPath) {
-            const screenshotFiles = [
-              'landing_page.png',
-              'quiz_completed.png',
-              'checkout_filled.png',
-              'payment_entered.png',
-              'order_submitted.png'
-            ];
-            
-            let screenshotsHtml = '';
-            for (const file of screenshotFiles) {
-              screenshotsHtml += `
-                <div class="mb-3">
-                  <h5>${file.replace('.png', '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h5>
-                  <img src="${result.screenshotsPath}/${file}" alt="${file}" onerror="this.style.display='none'">
-                </div>
-              `;
-            }
-            
-            // Also check for error screenshot
-            screenshotsHtml += `
-              <div class="mb-3">
-                <h5>Error State (if applicable)</h5>
-                <img src="${result.screenshotsPath}/error_state.png" alt="Error State" onerror="this.style.display='none'">
-              </div>
-            `;
-            
-            screenshotContainer.innerHTML = screenshotsHtml;
-          }
-        } else {
-          resultStatus.className = 'alert alert-danger';
-          resultStatus.textContent = 'Test purchase failed: ' + (result.error || 'Unknown error');
-          
-          // Show error screenshot if available
-          if (result.screenshotsPath) {
-            screenshotContainer.innerHTML = `
-              <div class="mb-3">
-                <h5>Error State</h5>
-                <img src="${result.screenshotsPath}/error_state.png" alt="Error State" onerror="this.style.display='none'">
-              </div>
-            `;
-          }
-        }
-      } catch (error) {
-        console.error('Error running test:', error);
-        const resultsContainer = document.getElementById('resultsContainer');
-        const resultStatus = document.getElementById('resultStatus');
-        
-        resultsContainer.style.display = 'block';
-        resultStatus.className = 'alert alert-danger';
-        resultStatus.textContent = 'Error running test: ' + error.message;
-      } finally {
-        // Hide loading state
-        document.querySelector('.loading').style.display = 'none';
-      }
-    });
-  </script>
+  <script src="/app.js"></script>
 </body>
 </html>
   `;
   
+  // Create app.js for the client-side JavaScript
+  const appJs = `
+document.getElementById('testPurchaseForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  // Show loading state
+  document.querySelector('.loading').style.display = 'block';
+  document.getElementById('resultsContainer').style.display = 'none';
+  
+  // Gather form data
+  const formData = new FormData(this);
+  const customerInfo = {
+    firstName: formData.get('firstName'),
+    lastName: formData.get('lastName'),
+    email: formData.get('email'),
+    phone: formData.get('phone'),
+    address1: formData.get('address1'),
+    city: formData.get('city'),
+    state: formData.get('state'),
+    zipCode: formData.get('zipCode'),
+    country: formData.get('country')
+  };
+  
+  const paymentInfo = {
+    cardNumber: formData.get('cardNumber'),
+    cardName: formData.get('cardName'),
+    expiry: formData.get('expiry'),
+    cvc: formData.get('cvc')
+  };
+  
+  // Prepare request data
+  const requestData = {
+    landingPageUrl: formData.get('landingPageUrl'),
+    customerInfo,
+    paymentInfo,
+    submitOrder: formData.get('submitOrder') ? 'true' : 'false',
+    headless: formData.get('headless') ? 'true' : 'false'
+  };
+  
+  try {
+    // Send API request
+    const response = await fetch('/api/run-test', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestData)
+    });
+    
+    const result = await response.json();
+    
+    // Display results
+    const resultsContainer = document.getElementById('resultsContainer');
+    const resultStatus = document.getElementById('resultStatus');
+    const resultDetails = document.getElementById('resultDetails');
+    const screenshotContainer = document.getElementById('screenshotContainer');
+    
+    resultsContainer.style.display = 'block';
+    
+    if (result.success) {
+      resultStatus.className = 'alert alert-success';
+      resultStatus.textContent = 'Test purchase completed successfully!';
+      
+      // Show order result details
+      let detailsHtml = '<h4>Order Result:</h4>';
+      if (result.orderResult) {
+        detailsHtml += '<p><strong>Status:</strong> ' + result.orderResult.status + '</p>';
+        if (result.orderResult.message) {
+          detailsHtml += '<p><strong>Message:</strong> ' + result.orderResult.message + '</p>';
+        }
+        if (result.orderResult.currentUrl) {
+          detailsHtml += '<p><strong>Final URL:</strong> ' + result.orderResult.currentUrl + '</p>';
+        }
+      }
+      resultDetails.innerHTML = detailsHtml;
+      
+      // Display screenshots
+      if (result.screenshotsPath) {
+        const screenshotFiles = [
+          'landing_page.png',
+          'quiz_completed.png',
+          'checkout_filled.png',
+          'payment_entered.png',
+          'order_submitted.png'
+        ];
+        
+        let screenshotsHtml = '';
+        for (const file of screenshotFiles) {
+          const title = file.replace('.png', '').replace(/_/g, ' ').replace(/\\b\\w/g, l => l.toUpperCase());
+          screenshotsHtml += '<div class="mb-3">';
+          screenshotsHtml += '<h5>' + title + '</h5>';
+          screenshotsHtml += '<img src="' + result.screenshotsPath + '/' + file + '" alt="' + file + '" onerror="this.style.display=\\'none\\'">';
+          screenshotsHtml += '</div>';
+        }
+        
+        // Also check for error screenshot
+        screenshotsHtml += '<div class="mb-3">';
+        screenshotsHtml += '<h5>Error State (if applicable)</h5>';
+        screenshotsHtml += '<img src="' + result.screenshotsPath + '/error_state.png" alt="Error State" onerror="this.style.display=\\'none\\'">';
+        screenshotsHtml += '</div>';
+        
+        screenshotContainer.innerHTML = screenshotsHtml;
+      }
+    } else {
+      resultStatus.className = 'alert alert-danger';
+      resultStatus.textContent = 'Test purchase failed: ' + (result.error || 'Unknown error');
+      
+      // Show error screenshot if available
+      if (result.screenshotsPath) {
+        screenshotContainer.innerHTML = '<div class="mb-3">' +
+          '<h5>Error State</h5>' +
+          '<img src="' + result.screenshotsPath + '/error_state.png" alt="Error State" onerror="this.style.display=\\'none\\'">' +
+          '</div>';
+      }
+    }
+  } catch (error) {
+    console.error('Error running test:', error);
+    const resultsContainer = document.getElementById('resultsContainer');
+    const resultStatus = document.getElementById('resultStatus');
+    
+    resultsContainer.style.display = 'block';
+    resultStatus.className = 'alert alert-danger';
+    resultStatus.textContent = 'Error running test: ' + error.message;
+  } finally {
+    // Hide loading state
+    document.querySelector('.loading').style.display = 'none';
+  }
+});
+  `;
+  
   fs.writeFileSync(path.join(publicDir, 'index.html'), indexHtml);
+  fs.writeFileSync(path.join(publicDir, 'app.js'), appJs);
 }
 
 // Main function to start the application
