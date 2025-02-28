@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory, render_template_string
 import sys
 import os
 import json
@@ -61,27 +61,124 @@ class SimplifiedParser:
 
 app = Flask(__name__)
 
+# Simple HTML page for testing
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OmniParser Service</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>OmniParser Service</h1>
+        
+        <div class="status-box success">
+            <p>Service is running</p>
+        </div>
+        
+        <div class="section">
+            <h2>Upload Screenshot for Analysis</h2>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="screenshot">Screenshot:</label>
+                    <input type="file" id="screenshot" name="screenshot" accept="image/*">
+                </div>
+                <button type="submit" class="btn">Analyze Screenshot</button>
+            </form>
+        </div>
+        
+        <div class="section">
+            <h2>Results</h2>
+            <div id="results">
+                <p>No results yet</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const fileInput = document.getElementById('screenshot');
+            
+            if (fileInput.files.length === 0) {
+                alert('Please select a file');
+                return;
+            }
+            
+            formData.append('file', fileInput.files[0]);
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const resultsDiv = document.getElementById('results');
+                    
+                    let html = '<h3>Detected Elements:</h3>';
+                    html += '<pre>' + JSON.stringify(result.elements, null, 2) + '</pre>';
+                    
+                    resultsDiv.innerHTML = html;
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error uploading file');
+            }
+        });
+    </script>
+</body>
+</html>
+"""
+
+@app.route('/')
+def index():
+    return render_template_string(HTML_TEMPLATE)
+
+@app.route('/static/<path:path>')
+def serve_static(path):
+    return send_from_directory('public', path)
+
 @app.route('/health', methods=['GET'])
 def health_check():
-    return jsonify({"status": "healthy", "version": "1.0"})
+    return jsonify({"status": "healthy"})
 
-@app.route('/parse_screenshot', methods=['POST'])
-def parse_screenshot():
+@app.route('/upload', methods=['POST'])
+def upload_file():
     try:
-        data = request.json
-        screenshot_path = data.get('screenshot_path')
-        
-        if not screenshot_path or not os.path.exists(screenshot_path):
+        if 'file' not in request.files:
             return jsonify({
                 "success": False,
-                "error": f"Screenshot not found at path: {screenshot_path}"
+                "error": "No file part"
             }), 400
+        
+        file = request.files['file']
+        
+        if file.filename == '':
+            return jsonify({
+                "success": False,
+                "error": "No selected file"
+            }), 400
+        
+        # Save the uploaded file
+        upload_dir = os.path.join(os.path.dirname(__file__), 'uploads')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        filepath = os.path.join(upload_dir, file.filename)
+        file.save(filepath)
         
         # Initialize the parser
         parser = SimplifiedParser()
         
         # Parse the screenshot
-        elements = parser.parse(screenshot_path)
+        elements = parser.parse(filepath)
         
         # Convert elements to serializable format
         serializable_elements = []
@@ -95,7 +192,8 @@ def parse_screenshot():
         
         return jsonify({
             "success": True,
-            "elements": serializable_elements
+            "elements": serializable_elements,
+            "filename": file.filename
         })
     except Exception as e:
         traceback.print_exc()
@@ -106,50 +204,6 @@ def parse_screenshot():
 
 @app.route('/find_element', methods=['POST'])
 def find_element():
-    try:
-        data = request.json
-        screenshot_path = data.get('screenshot_path')
-        element_type = data.get('element_type')  # button, link, input, etc.
-        text = data.get('text')  # Text content to search for
-        
-        if not screenshot_path or not os.path.exists(screenshot_path):
-            return jsonify({
-                "success": False,
-                "error": f"Screenshot not found at path: {screenshot_path}"
-            }), 400
-        
-        # Initialize the parser
-        parser = SimplifiedParser()
-        
-        # Find elements matching criteria
-        elements = parser.find_elements(screenshot_path, element_type, text)
-        
-        if not elements:
-            return jsonify({
-                "success": False,
-                "error": "No matching elements found"
-            }), 404
-        
-        # Return the first matching element
-        element = elements[0]
-        if hasattr(element, 'to_dict'):
-            element_data = element.to_dict()
-        else:
-            element_data = element
-            
-        return jsonify({
-            "success": True,
-            "element": element_data
-        })
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
-
-@app.route('/get_click_coordinates', methods=['POST'])
-def get_click_coordinates():
     try:
         data = request.json
         screenshot_path = data.get('screenshot_path')
@@ -203,5 +257,5 @@ def get_click_coordinates():
 # For Glitch compatibility
 if __name__ == '__main__':
     # Get port from environment variable (Glitch sets this)
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=port)

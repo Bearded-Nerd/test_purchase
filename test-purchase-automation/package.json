@@ -2,16 +2,17 @@
   "name": "test-purchase-automation",
   "version": "1.0.0",
   "description": "Automated test purchase tool for e-commerce sites",
-  "main": "automation.js",
+  "main": "server.js",
   "scripts": {
-    "start": "bash start.sh",
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "express": "^4.17.1",
     "body-parser": "^1.19.0",
     "axios": "^0.24.0",
-    "puppeteer": "^13.0.0"
+    "puppeteer": "^13.0.0",
+    "cors": "^2.8.5"
   },
   "engines": {
     "node": "16.x"
@@ -21,6 +22,6 @@
     "e-commerce",
     "testing"
   ],
-  "author": "Yoav Chen",
+  "author": "",
   "license": "MIT"
 }

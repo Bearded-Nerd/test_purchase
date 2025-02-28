@@ -1,0 +1,25 @@
+{
+  "install": "apt-get update && apt-get install -y nodejs npm python3 python3-pip git",
+  "start": "bash start.sh",
+  "watch": {
+    "ignore": [
+      "\\.git",
+      "node_modules",
+      "screenshots",
+      "temp_screenshots",
+      "__pycache__"
+    ],
+    "install": {
+      "include": [
+        "^package\\.json$",
+        "^requirements\\.txt$"
+      ]
+    },
+    "restart": {
+      "include": [
+        "^automation\\.js$",
+        "^omniparser-service/app\\.py$"
+      ]
+    }
+  }
+} 
